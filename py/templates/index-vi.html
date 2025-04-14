@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home</title>
+</head>
+<body>
+    <h2>Chọn phòng</h2>
+    <button onclick="getDevices('phong_khach')">Phòng khách</button>
+    <button onclick="getDevices('phong_ngu')">Phòng ngủ</button>
+    <button onclick="getDevices('nha_bep')">Nhà bếp</button>
+
+    <h3>Thiết bị trong phòng:</h3>
+    <ul id="device-list"></ul>
+
+    <script>
+        function getDevices(room) {
+            fetch(`/status/${room}`)
+                .then(response => response.json())
+                .then(data => {
+                    let list = document.getElementById("device-list");
+                    list.innerHTML = "";
+                    for (let device in data) {
+                        let li = document.createElement("li");
+                        li.innerHTML = `${device}: ${data[device]} 
+                            <button onclick="toggleDevice('${room}', '${device}', '${data[device]}')">Bật/Tắt</button>`;
+                        list.appendChild(li);
+                    }
+                })
+                .catch(error => console.error("Lỗi:", error));
+        }
+
+        function toggleDevice(room, device, currentState) {
+            let newState = currentState === "mở" ? "tắt" : "mở";
+            fetch("/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ room, device, status: newState })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                getDevices(room); // Cập nhật lại danh sách thiết bị sau khi thay đổi
+            })
+            .catch(error => console.error("Lỗi:", error));
+        }
+    </script>
+</body>
+</html>

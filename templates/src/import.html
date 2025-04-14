@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhà Thông Minh</title>
+    <script>
+        function showRooms() {
+            document.getElementById("rooms").style.display = "block";
+        }
+
+        function getDeviceStatus(room) {
+            fetch(`http://127.0.0.1:5000/status/${room}`)
+                .then(response => response.json())
+                .then(data => {
+                    let statusDiv = document.getElementById("deviceStatus");
+                    statusDiv.innerHTML = `<h3>Thiết bị trong ${room}</h3>`;
+                    
+                    for (let device in data) {
+                        let buttonText = data[device] === "Mở" ? "Tắt" : "Mở";
+                        statusDiv.innerHTML += `
+                            <p>${device}: ${data[device]}
+                            <button onclick="toggleDevice('${room}', '${device}')">${buttonText}</button></p>`;
+                    }
+                })
+                .catch(error => alert("Lỗi khi lấy dữ liệu!"));
+        }
+
+        function toggleDevice(room, device) {
+            fetch(`http://127.0.0.1:5000/toggle/${room}/${device}`, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Đã đổi trạng thái ${device} thành ${data.new_status}`);
+                    getDeviceStatus(room);
+                })
+                .catch(error => alert("Lỗi khi thay đổi trạng thái!"));
+        }
+    </script>
+</head>
+<body>
+    <h2>Hệ Thống Nhà Thông Minh</h2>
+    <button onclick="showRooms()">Xem Trạng Thái Thiết Bị</button>
+    
+    <div id="rooms" style="display:none; margin-top: 20px;">
+        <button onclick="getDeviceStatus('phong_khach')">Phòng Khách</button>
+        <button onclick="getDeviceStatus('phong_ngu')">Phòng Ngủ</button>
+        <button onclick="getDeviceStatus('nha_bep')">Nhà Bếp</button>
+    </div>
+
+    <div id="deviceStatus" style="margin-top: 20px;"></div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập bằng Face ID</title>
+</head>
+<body>
+    <h2>Đăng nhập bằng khuôn mặt</h2>
+    <video id="video" width="300" height="300" autoplay></video>
+    <button onclick="capture()">Quét khuôn mặt</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <p id="result"></p>
+
+    <script>
+        const video = document.getElementById("video");
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => video.srcObject = stream)
+            .catch(err => console.error("Không thể mở camera", err));
+
+        function capture() {
+            let canvas = document.getElementById("canvas");
+            let context = canvas.getContext("2d");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(blob => {
+                let formData = new FormData();
+                formData.append("image", blob, "face.jpg");
+
+                fetch("http://127.0.0.1:5000/face-login", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("result").innerText = data.message || data.error;
+                })
+                .catch(err => console.error("Lỗi:", err));
+            }, "image/jpeg");
+        }
+    </script>
+</body>
+</html>
